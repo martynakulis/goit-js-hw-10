@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
 import Notiflix from 'notiflix';
+import SlimSelect from 'slim-select';
 
 axios.defaults.headers.common['x-api-key'] =
   'live_YWD0Bu9jDiHTPM2CTuBAWYmm1NDzDah9zx81el5nFwq8zvSP7odjb7ls0shZPuhX';
@@ -15,56 +16,49 @@ new SlimSelect({
 });
 
 breedSelect.style.display = 'none';
+error.style.display = 'none';
 
 fetchBreeds()
   .then(data => {
-    const options = data.data;
-
-    loader.style.display = 'block';
-    error.style.display = 'none';
-
-    breedSelect.innerHTML = options
-      .map(breed => `<option value="${breed.id}">${breed.name}</option>`)
-      .join('');
-
-    loader.style.display = 'none';
-  })
-  .catch(() => {
-    loader.style.display = 'none';
-    error.style.display = 'block';
-  })
-  .finally(() => {
     breedSelect.style.display = 'block';
+    loader.style.display = 'none';
+
+    const option = data.map(breed =>
+      `<option value="${breed.id}"> ${breed.name}</option >`.join('')
+    );
+    breedSelect.insertAdjacentHTML('beforeend', option);
+  })
+  .catch(error => {
+    Notiflix.Notify.failure(
+      'Oops! Something went wrong! Try reloading the page!'
+    );
   });
 
-breedSelect.addEventListener('change', event => {
-  error.style.display = 'none';
+breedSelect.addEventListener('change', () => {
+  catInfo.innerHTML = '';
+  const selected = this.value;
+
   loader.style.display = 'block';
-  catInfo.style.display = 'none';
 
-  const breed = event.target.value;
+  fetchCatByBreed(selected)
+    .then(breed => {
+      const url = breed[0].url;
+      const name = breed[0].breeds[0].name;
+      const description = breed[0].breeds[0].description;
+      const temperament = breed[0].breeds[0].temperament;
 
-  fetchCatByBreed(breed)
-    .then(data => {
-      const catData = data.data[0].breeds[0];
-
-      if (catData) {
-        catInfo.innerHTML = `
-          <p>${catData.name}</p>
-          <p>${catData.description}</p>
-          <p>${catData.temperament}</p>
-          <img src='${data.data[0].url}' >`;
-      } else {
-        catInfo.innerHTML = Notiflix.Notify.failure(
-          'No information available for this breed'
-        );
-      }
+      catInfo.innerHTML = `
+        <img src="${url}" alt="${name}" width="500px" height="400px">
+        <h2>${name}</h2>
+        <p>Description: ${description}</p>
+        <p>Temperament: ${temperament}</p>
+            `;
 
       loader.style.display = 'none';
-      catInfo.style.display = 'block';
     })
-    .catch(() => {
-      loader.style.display = 'none';
-      error.style.display = 'block';
+    .catch(error => {
+      Notiflix.Notify.failure(
+        'Oops! Something went wrong! Try reloading the page!'
+      );
     });
 });
