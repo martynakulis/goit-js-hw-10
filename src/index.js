@@ -11,10 +11,6 @@ const loader = document.querySelector('.loader');
 const error = document.querySelector('.error');
 const catInfo = document.querySelector('.cat-info');
 
-new SlimSelect({
-  select: '#single',
-});
-
 breedSelect.style.display = 'none';
 error.style.display = 'none';
 
@@ -23,9 +19,9 @@ fetchBreeds()
     breedSelect.style.display = 'block';
     loader.style.display = 'none';
 
-    const option = data.map(breed =>
-      `<option value="${breed.id}"> ${breed.name}</option >`.join('')
-    );
+    const option = data
+      .map(breed => `<option value="${breed.id}"> ${breed.name}</option >`)
+      .join('');
     breedSelect.insertAdjacentHTML('beforeend', option);
   })
   .catch(error => {
@@ -34,9 +30,9 @@ fetchBreeds()
     );
   });
 
-breedSelect.addEventListener('change', () => {
+breedSelect.addEventListener('change', event => {
   catInfo.innerHTML = '';
-  const selected = this.value;
+  const selected = event.currentTarget.value;
 
   loader.style.display = 'block';
 
@@ -48,10 +44,11 @@ breedSelect.addEventListener('change', () => {
       const temperament = breed[0].breeds[0].temperament;
 
       catInfo.innerHTML = `
-        <img src="${url}" alt="${name}" width="500px" height="400px">
+        <div><img src="${url}" alt="${name}" width="500px" height="400px">
         <h2>${name}</h2>
         <p>Description: ${description}</p>
         <p>Temperament: ${temperament}</p>
+        </div>
             `;
 
       loader.style.display = 'none';
